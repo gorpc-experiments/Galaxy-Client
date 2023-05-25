@@ -1,3 +1,3 @@
-module github.com/gorpc-experiments/Galaxy-Client
+module github.com/gorpc-experiments/GalaxyClient
 
 go 1.20
