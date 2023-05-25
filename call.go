@@ -5,7 +5,7 @@ import (
 	"net/rpc"
 )
 
-func (galaxy *GalaxyClient) call(method string, args any, reply any) error {
+func (galaxy *GalaxyClient) Call(method string, args any, reply any) error {
 	serviceUrl, err := galaxy.LookUp(method)
 
 	if err != nil {
