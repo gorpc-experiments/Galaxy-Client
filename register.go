@@ -19,7 +19,7 @@ type RegisterResponse struct {
 func (galaxy *GalaxyClient) RegisterToGalaxy(srvc any) {
 	var response RegisterResponse
 
-	host := KubernetesUtil.GetInternalServiceName()
+	host := KubernetesUtil.GetInternalServiceIP()
 
 	if host == "" {
 		host = "127.0.0.1"
