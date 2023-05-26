@@ -26,12 +26,24 @@ func NewGalaxyClientWithAddress(galaxyAddress string) (*GalaxyClient, error) {
 }
 
 func NewGalaxyClient() (*GalaxyClient, error) {
-	address := ""
+	nameEnv := ""
+	portEnv := ""
 	if KubernetesUtil.IsRunningInKubernetes() {
-		nameEnv := os.Getenv("GALAXY_SERVICE_HOST")
-		portEnv := os.Getenv("GALAXY_SERVICE_PORT")
-		address = fmt.Sprintf("%s:%s", nameEnv, portEnv)
+		nameEnv = os.Getenv("GALAXY_SERVICE_HOST")
+		portEnv = os.Getenv("GALAXY_SERVICE_PORT")
+	} else {
+		nameEnv = os.Getenv("GALAXY_HOST")
+		portEnv = os.Getenv("GALAXY_PORT")
+
+		if nameEnv == "" {
+			nameEnv = "localhost"
+		}
+
+		if portEnv == "" {
+			portEnv = "3000"
+		}
 	}
+	address := fmt.Sprintf("%s:%s", nameEnv, portEnv)
 
 	return NewGalaxyClientWithAddress(address)
 }
