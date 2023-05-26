@@ -1,4 +1,4 @@
-package GalaxyClient
+package ServiceCore
 
 import (
 	"fmt"
