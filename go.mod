@@ -1,4 +1,4 @@
-module github.com/gorpc-experiments/GalaxyClient
+module github.com/gorpc-experiments/ServiceCore
 
 go 1.20
 
