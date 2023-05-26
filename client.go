@@ -9,7 +9,11 @@ import (
 
 type GalaxyClient struct {
 	Version int
-	client  *rpc.Client
+
+	ClientHost string
+	ClientPort int
+
+	client *rpc.Client
 }
 
 func NewGalaxyClientWithAddress(galaxyAddress string) (*GalaxyClient, error) {

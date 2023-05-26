@@ -20,23 +20,29 @@ func (galaxy *GalaxyClient) RegisterToGalaxy(srvc any) {
 	var response RegisterResponse
 
 	host := KubernetesUtil.GetInternalServiceIP()
+	port := GetRPCPort()
 
 	if host == "" {
 		host = "127.0.0.1"
 	}
 
-	port := KubernetesUtil.GetInternalServicePort()
-
 	if port == 0 {
-		portenv := os.Getenv("PORT")
+		port = KubernetesUtil.GetInternalServicePort()
 
-		portval, err := strconv.Atoi(portenv)
-		if err != nil {
-			println("Failed to parse port: ", err)
+		if port == 0 {
+			portenv := os.Getenv("PORT")
+
+			portval, err := strconv.Atoi(portenv)
+			if err != nil {
+				println("Failed to parse port: ", err)
+			}
+
+			port = portval
 		}
-
-		port = portval
 	}
+
+	galaxy.ClientHost = host
+	galaxy.ClientPort = port
 
 	err := galaxy.client.Call("Galaxy.Register", RegisterRequest{fmt.Sprintf("%s:%d", host, port), ExportList(srvc)}, &response)
 	if err != nil {
