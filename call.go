@@ -1,8 +1,7 @@
 package ServiceCore
 
 import (
-	"github.com/davecgh/go-spew/spew"
-	"log"
+	"github.com/rs/zerolog/log"
 	"net/rpc"
 )
 
@@ -21,7 +20,7 @@ func (galaxy *GalaxyClient) Call(method string, args any, reply any) error {
 
 	err = client.Call(method, args, reply)
 
-	spew.Dump(method, args, reply)
+	log.Info().Msg("Called service for method: " + method)
 
 	if err != nil {
 		log.Println("Failed when calling service for method:", method, err)
