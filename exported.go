@@ -3,8 +3,8 @@ package ServiceCore
 import (
 	"errors"
 	"fmt"
+	"github.com/rs/zerolog/log"
 	"go/token"
-	"log"
 	"reflect"
 	"sync"
 )
@@ -70,14 +70,14 @@ func (server *Server) register(rcvr any, name string, useName bool) error {
 		sname = reflect.Indirect(s.Rcvr).Type().Name()
 	}
 	if sname == "" {
-		s := "rpc.Register: no service name for type " + s.Typ.String()
-		log.Print(s)
-		return errors.New(s)
+		err := errors.New("no service name for type")
+		log.Err(err).Str("type", s.Typ.String())
+		return err
 	}
 	if !useName && !token.IsExported(sname) {
-		s := "rpc.Register: type " + sname + " is not exported"
-		log.Print(s)
-		return errors.New(s)
+		err := errors.New("type is not exported")
+		log.Err(err).Str("type", sname)
+		return err
 	}
 	s.Name = sname
 
@@ -85,21 +85,17 @@ func (server *Server) register(rcvr any, name string, useName bool) error {
 	s.Method = suitableMethods(s.Typ)
 
 	if len(s.Method) == 0 {
-		str := ""
 
-		// To help the user, see if a pointer receiver would work.
 		method := suitableMethods(reflect.PointerTo(s.Typ))
-		if len(method) != 0 {
-			str = "rpc.Register: type " + sname + " has no exported methods of suitable type (hint: pass a pointer to value of that type)"
-		} else {
-			str = "rpc.Register: type " + sname + " has no exported methods of suitable type"
-		}
-		log.Print(str)
-		return errors.New(str)
+		err := errors.New("type has no suitable exported methods")
+		log.Err(err).Int("method", len(s.Method)).Int("pointedMethods", len(method)).Str("type", sname)
+		return err
 	}
 
 	if _, dup := server.serviceMap.LoadOrStore(sname, s); dup {
-		return errors.New("rpc: service already defined: " + sname)
+		err := errors.New("service already defined")
+		log.Err(err).Int("method", len(s.Method)).Str("service", sname)
+		return err
 	}
 	return nil
 }
@@ -118,34 +114,34 @@ func suitableMethods(typ reflect.Type) map[string]*MethodType {
 		}
 		// Method needs three ins: receiver, *args, *reply.
 		if mtype.NumIn() != 3 {
-			log.Printf("rpc.Register: method %q has %d input parameters; needs exactly three\n", mname, mtype.NumIn())
+			log.Warn().Str("method", mname).Int("in", mtype.NumIn()).Msg("method has wrong number of ins, should be 3")
 			continue
 		}
 		// First arg need not be a pointer.
 		argType := mtype.In(1)
 		if !isExportedOrBuiltinType(argType) {
-			log.Printf("rpc.Register: argument type of method %q is not exported: %q\n", mname, argType)
+			log.Warn().Str("method", mname).Str("argType", argType.String()).Msg("argument type not exported")
 			continue
 		}
 		// Second arg must be a pointer.
 		replyType := mtype.In(2)
 		if replyType.Kind() != reflect.Pointer {
-			log.Printf("rpc.Register: reply type of method %q is not a pointer: %q\n", mname, replyType)
+			log.Warn().Str("method", mname).Str("replyType", replyType.String()).Msg("reply type not a pointer")
 			continue
 		}
 		// Reply type must be exported.
 		if !isExportedOrBuiltinType(replyType) {
-			log.Printf("rpc.Register: reply type of method %q is not exported: %q\n", mname, replyType)
+			log.Warn().Str("method", mname).Str("replyType", replyType.String()).Msg("reply type not exported")
 			continue
 		}
 		// Method needs one out.
 		if mtype.NumOut() != 1 {
-			log.Printf("rpc.Register: method %q has %d output parameters; needs exactly one\n", mname, mtype.NumOut())
+			log.Warn().Str("method", mname).Int("out", mtype.NumOut()).Msg("method has wrong number of outs, should be 1")
 			continue
 		}
 		// The return type of the method must be error.
 		if returnType := mtype.Out(0); returnType != typeOfError {
-			log.Printf("rpc.Register: return type of method %q is %q, must be error\n", mname, returnType)
+			log.Warn().Str("method", mname).Str("returnType", returnType.String()).Msg("return type not error")
 			continue
 		}
 		methods[mname] = &MethodType{Method: method, ArgType: argType, ReplyType: replyType}
