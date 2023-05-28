@@ -58,7 +58,7 @@ func NewGalaxyClient() (*GalaxyClient, error) {
 	return NewGalaxyClientWithAddress(address)
 }
 
-func PublishMicroService(receiver any) {
+func PublishMicroService(receiver any, registerToGalaxy bool) {
 	err := rpc.Register(receiver)
 
 	if err != nil {
@@ -79,18 +79,20 @@ func PublishMicroService(receiver any) {
 
 	log.Info().Str("host", host).Int("port", port).Msg("Microservice Listening...")
 
-	galaxy, err := NewGalaxyClient()
+	if registerToGalaxy {
+		galaxy, err := NewGalaxyClient()
 
-	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to connect to Galaxy")
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to connect to Galaxy")
+		}
+
+		galaxy.RegisterToGalaxy(receiver, host, port)
 	}
-
-	galaxy.RegisterToGalaxy(receiver, host, port)
 
 	rpc.HandleHTTP()
 
-	err = http.ListenAndServe(fmt.Sprintf(":%d", galaxy.ClientPort), nil)
+	err = http.Serve(listener, nil)
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("Failed to start HTTP server")
 	}
 }
