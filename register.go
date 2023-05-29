@@ -11,6 +11,8 @@ import (
 type RegisterRequest struct {
 	Address    string
 	Components []string
+
+	Version int
 }
 
 type RegisterResponse struct {
@@ -46,7 +48,11 @@ func (galaxy *GalaxyClient) RegisterToGalaxy(service any, host string, port int)
 
 	exported := ExportList(service)
 
-	err := galaxy.client.Call("Galaxy.Register", RegisterRequest{fmt.Sprintf("%s:%d", host, port), exported}, &response)
+	err := galaxy.client.Call("Galaxy.Register", RegisterRequest{
+		fmt.Sprintf("%s:%d", host, port),
+		exported,
+		galaxy.Version,
+	}, &response)
 	if err != nil {
 		log.Err(err).Strs("services", exported).Msg("Failed to register service(s)")
 	} else {
