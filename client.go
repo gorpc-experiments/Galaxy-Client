@@ -90,7 +90,6 @@ func PublishMicroService(receiver any, registerToGalaxy bool) {
 	}
 
 	rpc.HandleHTTP()
-
 	err = http.Serve(listener, nil)
 	if err != nil {
 		log.Err(err).Msg("Failed to start HTTP server")

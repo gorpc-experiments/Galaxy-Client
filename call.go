@@ -9,6 +9,8 @@ import (
 func (galaxy *GalaxyClient) Call(method string, args any, reply any) error {
 	serviceUrl, err := galaxy.LookUp(method)
 
+	log.Info().Str("method", method).Str("url", serviceUrl).Msg("Looking up service for method")
+
 	if err != nil {
 		log.Err(err).Str("method", method).Msg("Unable to find a service for method")
 	}
